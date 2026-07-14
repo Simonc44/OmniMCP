@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "mock-alpha": {
+      "command": "python",
+      "args": [
+        "c:/Users/admin/Documents/OmniMCP/mock_server.py",
+        "alpha"
+      ]
+    },
+    "mock-beta": {
+      "command": "python",
+      "args": [
+        "c:/Users/admin/Documents/OmniMCP/mock_server.py",
+        "beta"
+      ]
+    }
+  }
+}

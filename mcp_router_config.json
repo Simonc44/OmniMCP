@@ -1,0 +1,26 @@
+{
+  "mcpServers": {
+    "trend-mining": {
+      "command": "python",
+      "args": [
+        "-m",
+        "trend_mining.server"
+      ],
+      "env": {
+        "PLAYWRIGHT_HEADLESS": "true",
+        "MINING_DEPTH": "deep"
+      }
+    },
+    "reddit": {
+      "command": "python",
+      "args": [
+        "C:/Users/admin/Documents/Reddit/server.py"
+      ],
+      "env": {
+        "REDDIT_CLIENT_ID": "your_client_id_here",
+        "REDDIT_CLIENT_SECRET": "your_client_secret_here",
+        "REDDIT_USER_AGENT": "your_user_agent_here"
+      }
+    }
+  }
+}
