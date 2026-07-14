@@ -92,7 +92,9 @@ class SubServerManager:
                 await self.lifecycle_task
             except asyncio.CancelledError:
                 pass
-        await self._cleanup()
+            self.lifecycle_task = None
+        else:
+            await self._cleanup()
 
     async def _cleanup(self):
         """Ferme la session client et le subprocess stdio."""
@@ -111,79 +113,82 @@ class SubServerManager:
     async def _lifecycle_loop(self):
         """Boucle de reconnexion automatique avec backoff exponentiel."""
         attempt = 0
-        while not self.shutdown_event.is_set():
-            self.status = "connecting"
-            self.connect_event.clear()
-            self.stack = AsyncExitStack()
+        try:
+            while not self.shutdown_event.is_set():
+                self.status = "connecting"
+                self.connect_event.clear()
+                self.stack = AsyncExitStack()
 
-            try:
-                logger.info(
-                    f"[{self.name}] Tentative de connexion (tentative {attempt+1}/{self.max_attempts})..."
-                )
-
-                # Préparation des paramètres de démarrage du subprocess
-                env = {**os.environ}
-                if "env" in self.config:
-                    env.update(self.config["env"])
-
-                params = StdioServerParameters(
-                    command=self.config["command"],
-                    args=self.config.get("args", []),
-                    env=env,
-                )
-
-                # Établissement de la connexion et de la session
-                read_stream, write_stream = await self.stack.enter_async_context(
-                    stdio_client(params)
-                )
-                session = await self.stack.enter_async_context(
-                    ClientSession(read_stream, write_stream)
-                )
-                await session.initialize()
-
-                self.session = session
-                self.status = "connected"
-                attempt = 0  # Réinitialisation des tentatives en cas de succès
-                self.connect_event.set()
-                logger.info(
-                    f"[{self.name}] Sous-serveur connecté et initialisé avec succès."
-                )
-
-                # Récupération et notification des outils
-                tools_result = await session.list_tools()
-                self.tools = tools_result.tools
-                await self.on_tools_changed()
-
-                # Attente active. Si le processus meurt, la tâche stdio_client lèvera
-                # une exception qui nous fera passer dans le bloc except.
-                while not self.shutdown_event.is_set():
-                    await asyncio.sleep(1)
-
-            except asyncio.CancelledError:
-                break
-            except Exception as e:
-                logger.error(
-                    f"[{self.name}] Erreur détectée dans le sous-serveur : {e}",
-                    exc_info=True,
-                )
-                await self._cleanup()
-
-                attempt += 1
-                if attempt >= self.max_attempts:
-                    logger.error(
-                        f"[{self.name}] Nombre maximal de tentatives ({self.max_attempts}) atteint. Arrêt des tentatives."
-                    )
-                    self.status = "failed"
-                    await self.on_tools_changed()
-                    break
-
-                # Calcul du backoff exponentiel
-                delay = min(self.max_delay, self.base_delay * (2 ** (attempt - 1)))
-                logger.info(f"[{self.name}] Reconnexion dans {delay:.2f} secondes...")
                 try:
-                    await asyncio.sleep(delay)
+                    logger.info(
+                        f"[{self.name}] Tentative de connexion (tentative {attempt+1}/{self.max_attempts})..."
+                    )
+
+                    # Préparation des paramètres de démarrage du subprocess
+                    env = {**os.environ}
+                    if "env" in self.config:
+                        env.update(self.config["env"])
+
+                    params = StdioServerParameters(
+                        command=self.config["command"],
+                        args=self.config.get("args", []),
+                        env=env,
+                    )
+
+                    # Établissement de la connexion et de la session
+                    read_stream, write_stream = await self.stack.enter_async_context(
+                        stdio_client(params)
+                    )
+                    session = await self.stack.enter_async_context(
+                        ClientSession(read_stream, write_stream)
+                    )
+                    await session.initialize()
+
+                    self.session = session
+                    self.status = "connected"
+                    attempt = 0  # Réinitialisation des tentatives en cas de succès
+                    self.connect_event.set()
+                    logger.info(
+                        f"[{self.name}] Sous-serveur connecté et initialisé avec succès."
+                    )
+
+                    # Récupération et notification des outils
+                    tools_result = await session.list_tools()
+                    self.tools = tools_result.tools
+                    await self.on_tools_changed()
+
+                    # Attente active. Si le processus meurt, la tâche stdio_client lèvera
+                    # une exception qui nous fera passer dans le bloc except.
+                    while not self.shutdown_event.is_set():
+                        await asyncio.sleep(1)
+
                 except asyncio.CancelledError:
-                    break
+                    raise
+                except Exception as e:
+                    logger.error(
+                        f"[{self.name}] Erreur détectée dans le sous-serveur : {e}",
+                        exc_info=True,
+                    )
+                    await self._cleanup()
+
+                    attempt += 1
+                    if attempt >= self.max_attempts:
+                        logger.error(
+                            f"[{self.name}] Nombre maximal de tentatives ({self.max_attempts}) atteint. Arrêt des tentatives."
+                        )
+                        self.status = "failed"
+                        await self.on_tools_changed()
+                        break
+
+                    # Calcul du backoff exponentiel
+                    delay = min(self.max_delay, self.base_delay * (2 ** (attempt - 1)))
+                    logger.info(f"[{self.name}] Reconnexion dans {delay:.2f} secondes...")
+                    try:
+                        await asyncio.sleep(delay)
+                    except asyncio.CancelledError:
+                        raise
+        finally:
+            await self._cleanup()
 
     async def call_tool(self, tool_name: str, arguments: dict, timeout: float = 5.0):
         """Appelle un outil avec une attente de grâce si le serveur est en reconnexion."""
@@ -639,20 +644,21 @@ async def run_gateway(config_path: str):
             # Fallback Windows
             signal.signal(sig, lambda s, f: handle_signal())
 
-    # Lancement du serveur et attente du signal d'arrêt
-    gateway_task = asyncio.create_task(gateway.start())
+    try:
+        # Lancement du serveur et attente du signal d'arrêt
+        gateway_task = asyncio.create_task(gateway.start())
 
-    # On attend soit un signal d'arrêt, soit que la tâche du gateway s'arrête d'elle-même (erreur)
-    done, pending = await asyncio.wait(
-        [gateway_task, asyncio.create_task(shutdown_triggered.wait())],
-        return_when=asyncio.FIRST_COMPLETED,
-    )
+        # On attend soit un signal d'arrêt, soit que la tâche du gateway s'arrête d'elle-même (erreur)
+        done, pending = await asyncio.wait(
+            [gateway_task, asyncio.create_task(shutdown_triggered.wait())],
+            return_when=asyncio.FIRST_COMPLETED,
+        )
 
-    # Annulation des tâches restantes
-    for t in pending:
-        t.cancel()
-
-    await gateway.shutdown()
+        # Annulation des tâches restantes
+        for t in pending:
+            t.cancel()
+    finally:
+        await gateway.shutdown()
 
 
 def main():
@@ -671,11 +677,15 @@ def main():
 
     try:
         anyio.run(run_gateway, args.config)
+        # S'assurer d'un arrêt immédiat après nettoyage propre pour éviter
+        # que des threads d'écoute bloquants sur stdio ne retardent l'exit.
+        os._exit(0)
     except KeyboardInterrupt:
         logger.info("Arrêt demandé par l'utilisateur.")
+        os._exit(0)
     except Exception as e:
         logger.critical(f"Erreur critique lors de l'exécution : {e}", exc_info=True)
-        sys.exit(1)
+        os._exit(1)
 
 
 if __name__ == "__main__":
