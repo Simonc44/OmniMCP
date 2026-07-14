@@ -31,7 +31,7 @@ async def stdout_reader_loop(stdout):
             if not line:
                 break
             try:
-                msg = json.loads(line.decode("utf-8"))
+                msg = json.loads(line.decode("utf-8", errors="replace"))
                 msg_id = msg.get("id")
                 if msg_id is not None:
                     if msg_id in pending_responses:
@@ -108,10 +108,13 @@ async def main():
                 line = await process.stderr.readline()
                 if not line:
                     break
-                text = line.decode("utf-8").strip()
-                print(f"[ROUTER LOG] {text}")
-                if "PERF_WARNING" in text:
-                    perf_warnings_captured.append(text)
+                try:
+                    text = line.decode("utf-8", errors="replace").strip()
+                    print(f"[ROUTER LOG] {text}")
+                    if "PERF_WARNING" in text:
+                        perf_warnings_captured.append(text)
+                except Exception as e:
+                    print(f"[TEST ERROR] Processing stderr line: {e}")
         except asyncio.CancelledError:
             pass
 
