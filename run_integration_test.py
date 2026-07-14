@@ -119,7 +119,7 @@ async def main():
     stdout_task = asyncio.create_task(stdout_reader_loop(process.stdout))
 
     try:
-        await asyncio.sleep(2.0)  # Laisser démarrer
+        await asyncio.sleep(5.0)  # Laisser démarrer
 
         # 1. INITIALISATION
         init_req = {
