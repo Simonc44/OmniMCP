@@ -14,7 +14,7 @@
     "reddit": {
       "command": "python",
       "args": [
-        "C:/Users/admin/Documents/Reddit/server.py"
+        "reddit_server.py"
       ],
       "env": {
         "REDDIT_CLIENT_ID": "your_client_id_here",

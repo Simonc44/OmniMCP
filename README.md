@@ -1,6 +1,6 @@
 <div align="center">
 
-# ⚡ OmniMCP Router
+# OmniMCP Router
 
 ### The Universal MCP Gateway — One Entry Point to Rule All Your AI Tools
 
@@ -12,7 +12,7 @@
 
 *Plug any MCP server. Claude sees them all as one.*
 
-[✨ Features](#-features) • [🚀 Quick Start](#-quick-start) • [⚙️ Configuration](#%EF%B8%8F-configuration) • [🧪 Tests](#-tests) • [🔌 Client Setup](#-client-setup) • [🤝 Contributing](#-contributing)
+[Features](#features) • [Quick Start](#quick-start) • [Configuration](#configuration) • [Tests](#tests) • [Client Setup](#client-setup) • [Contributing](#contributing)
 
 </div>
 
@@ -28,26 +28,26 @@ Every crash brings everything down. There's no observability. No resilience.
 
 ---
 
-## ✨ Features
+## Features
 
 | Feature | Description |
 |---|---|
-| 🔌 **Zero Hard-Coded Tools** | Dynamically discovers tools from every sub-server at startup |
-| ⚡ **Async Non-Blocking Routing** | Parallel requests routed concurrently via `anyio` — no bottleneck |
-| 🔄 **Auto-Healing** | Exponential backoff reconnection when a sub-server crashes |
-| 🔥 **Hot-Reload** | Detects `mcp_router_config.json` changes live — no restart needed |
-| 🪝 **Hook System** | Mutate, intercept, and validate requests/responses in middleware pipelines |
-| 📊 **Performance Monitoring** | Real-time profiling with `PERF_WARNING` for tools exceeding 5s |
-| 🛡️ **Isolated Lifecycle** | Each sub-server has its own `AsyncExitStack` — one crash ≠ global failure |
-| 🏷️ **Safe Namespacing** | Tools exposed as `{server}__{tool}`, sanitized to MCP spec (`[a-zA-Z0-9_-]{1,64}`) |
-| 📝 **Persistent Logging** | All logs written to `mcp_router.log` + `stderr` (captured by Claude) |
-| ✅ **JSON Schema Validation** | Strict input validation before forwarding any tool call |
-| ✂️ **Response Truncation Hook** | Auto-truncates responses >50k chars to protect context windows |
-| 🪟 **Windows + Linux** | Signal handling for both platforms |
+| **Zero Hard-Coded Tools** | Dynamically discovers tools from every sub-server at startup |
+| **Async Non-Blocking Routing** | Parallel requests routed concurrently via `anyio` — no bottleneck |
+| **Auto-Healing** | Exponential backoff reconnection when a sub-server crashes |
+| **Hot-Reload** | Detects `mcp_router_config.json` changes live — no restart needed |
+| **Hook System** | Mutate, intercept, and validate requests/responses in middleware pipelines |
+| **Performance Monitoring** | Real-time profiling with `PERF_WARNING` for tools exceeding 5s |
+| **Isolated Lifecycle** | Each sub-server has its own `AsyncExitStack` — one crash ≠ global failure |
+| **Safe Namespacing** | Tools exposed as `{server}__{tool}`, sanitized to MCP spec (`[a-zA-Z0-9_-]{1,64}`) |
+| **Persistent Logging** | All logs written to `mcp_router.log` + `stderr` (captured by Claude) |
+| **JSON Schema Validation** | Strict input validation before forwarding any tool call |
+| **Response Truncation Hook** | Auto-truncates responses >50k chars to protect context windows |
+| **Windows + Linux** | Signal handling for both platforms |
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ```bash
 # 1. Clone the repo
@@ -69,28 +69,28 @@ python router.py --config mcp_router_config.json
 
 ---
 
-## 🏗️ Project Structure
+## Project Structure
 
 ```
 OmniMCP/
-├── router.py                  # 🧠 Core gateway — routing, healing, hot-reload, hooks
-├── mock_server.py             # 🧪 Lightweight mock MCP server for testing
-├── run_integration_test.py    # ✅ Full integration test suite (async, healing, hot-reload)
-├── mcp_router_config.json     # ⚙️  Production config — your real MCP servers go here
-├── test_config.json           # 🔬 Test config — uses mock_server.py instances
-├── requirements.txt           # 📦 Dependencies: mcp, pydantic, jsonschema, anyio
-├── docs/                      # 📖 Architecture diagrams and assets
+├── router.py                  #  Core gateway — routing, healing, hot-reload, hooks
+├── mock_server.py             #  Lightweight mock MCP server for testing
+├── run_integration_test.py    #  Full integration test suite (async, healing, hot-reload)
+├── mcp_router_config.json     #   Production config — your real MCP servers go here
+├── test_config.json           #  Test config — uses mock_server.py instances
+├── requirements.txt           #  Dependencies: mcp, pydantic, jsonschema, anyio
+├── docs/                      #  Architecture diagrams and assets
 ├── .github/
-│   ├── workflows/ci.yml       # 🤖 GitHub Actions CI pipeline
-│   └── ISSUE_TEMPLATE/        # 🐛 Bug report & feature request templates
-├── CHANGELOG.md               # 📋 Version history
-├── CONTRIBUTING.md            # 🤝 Contribution guide
-└── LICENSE                    # ⚖️  MIT License
+│   ├── workflows/ci.yml       #  GitHub Actions CI pipeline
+│   └── ISSUE_TEMPLATE/        #  Bug report & feature request templates
+├── CHANGELOG.md               #  Version history
+├── CONTRIBUTING.md            #  Contribution guide
+└── LICENSE                    #   MIT License
 ```
 
 ---
 
-## ⚙️ Configuration
+## Configuration
 
 The config file follows the exact same syntax as `claude_desktop_config.json` — so you can **copy-paste** your existing Claude Desktop config directly.
 
@@ -128,7 +128,7 @@ OmniMCP watches your config file every 2 seconds. Add, remove, or modify a serve
 
 ---
 
-## 🧪 Tests
+## Tests
 
 The integration test suite validates the full feature set end-to-end:
 
@@ -146,7 +146,7 @@ python run_integration_test.py
 
 ---
 
-## 🔌 Client Setup
+## Client Setup
 
 ### Claude Desktop
 
@@ -175,7 +175,7 @@ In Cursor MCP settings, add a stdio server:
 
 ---
 
-## 🪝 Hook System
+## Hook System
 
 OmniMCP ships with a middleware pipeline for request/response mutation:
 
@@ -199,7 +199,7 @@ Built-in hooks:
 
 ---
 
-## 🛡️ Resilience Architecture
+## Resilience Architecture
 
 ```
 ┌──────────────────────────────────────────────────────┐
@@ -213,7 +213,7 @@ Built-in hooks:
 │  └─────────────────────────────────────────────────┘ │
 │  ┌──────────────┐ ┌──────────────┐ ┌────────────┐   │
 │  │SubServer A   │ │SubServer B   │ │SubServer C │   │
-│  │✅ connected  │ │🔄 reconnecting│ │✅ connected│   │
+│  │ connected  │ │ reconnecting│ │ connected│   │
 │  │Auto-Healing  │ │Backoff: 4s   │ │            │   │
 │  └──────────────┘ └──────────────┘ └────────────┘   │
 └──────────────────────────────────────────────────────┘
@@ -228,7 +228,7 @@ If Sub-Server B crashes:
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 PRs are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
@@ -239,13 +239,13 @@ PRs are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ---
 
-## 📋 Changelog
+## Changelog
 
 See [CHANGELOG.md](CHANGELOG.md).
 
 ---
 
-## ⚖️ License
+## License
 
 MIT — see [LICENSE](LICENSE).
 
@@ -253,7 +253,7 @@ MIT — see [LICENSE](LICENSE).
 
 <div align="center">
 
-Made with ⚡ for the MCP ecosystem  
-*If this saved you hours, drop a ⭐*
+Made for the MCP ecosystem
+*If this saved you hours, drop a star*
 
 </div>
