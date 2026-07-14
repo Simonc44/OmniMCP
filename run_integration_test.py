@@ -31,7 +31,7 @@ async def stdout_reader_loop(stdout):
             if not line:
                 break
             try:
-                msg = json.loads(line.decode("utf-8", errors="replace"))
+                msg = json.loads(line.decode("utf-8", errors="ignore"))
                 msg_id = msg.get("id")
                 if msg_id is not None:
                     if msg_id in pending_responses:
@@ -40,7 +40,8 @@ async def stdout_reader_loop(stdout):
                     # C'est une notification
                     await received_notifications.put(msg)
             except Exception as e:
-                print(f"[TEST ERROR] Parsing stdout : {e} pour la ligne : {line}")
+                safe_line = line.decode("ascii", errors="replace")
+                print(f"[TEST ERROR] Parsing stdout : {e} pour la ligne : {safe_line}")
     except asyncio.CancelledError:
         pass
 
@@ -109,10 +110,12 @@ async def main():
                 if not line:
                     break
                 try:
-                    text = line.decode("utf-8", errors="replace").strip()
-                    print(f"[ROUTER LOG] {text}")
+                    text = line.decode("utf-8", errors="ignore").strip()
                     if "PERF_WARNING" in text:
                         perf_warnings_captured.append(text)
+                    # Convert to ascii compatible representation to avoid charmap encode errors
+                    safe_text = text.encode("ascii", errors="replace").decode("ascii")
+                    print(f"[ROUTER LOG] {safe_text}")
                 except Exception as e:
                     print(f"[TEST ERROR] Processing stderr line: {e}")
         except asyncio.CancelledError:
