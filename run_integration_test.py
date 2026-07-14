@@ -352,7 +352,9 @@ async def main():
             await asyncio.wait_for(process.wait(), timeout=10.0)
             print("[TEST] Le routeur s'est arrêté proprement.")
         except asyncio.TimeoutError:
-            print("[TEST] Le routeur n'a pas répondu à SIGTERM après 10s, envoi de SIGKILL...")
+            print(
+                "[TEST] Le routeur n'a pas répondu à SIGTERM après 10s, envoi de SIGKILL..."
+            )
             process.kill()
             await process.wait()
 

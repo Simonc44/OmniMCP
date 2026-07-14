@@ -182,7 +182,9 @@ class SubServerManager:
 
                     # Calcul du backoff exponentiel
                     delay = min(self.max_delay, self.base_delay * (2 ** (attempt - 1)))
-                    logger.info(f"[{self.name}] Reconnexion dans {delay:.2f} secondes...")
+                    logger.info(
+                        f"[{self.name}] Reconnexion dans {delay:.2f} secondes..."
+                    )
                     try:
                         await asyncio.sleep(delay)
                     except asyncio.CancelledError:
